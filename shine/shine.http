@@ -1,0 +1,68 @@
+@baseUrl = http://127.0.0.1:6097
+# @baseUrl = https://shine-scraper.omkar.cloud
+
+# ========================================
+# JOBS
+# ========================================
+
+### Job search (keyword + city)
+GET {{baseUrl}}/shine/jobs/search?query=python&location=Bangalore
+
+### Job search (filters: experience / salary bands, employment type, newest first, page 2)
+GET {{baseUrl}}/shine/jobs/search?query=python&location=bangalore,pune&experience=3-5,6-8&salary=9-12&employment_type=regular&sort=newest&page=2&page_size=10
+
+### Job search (walk-in interviews, department + industry ids from /shine/filters, min experience / salary in lakh)
+GET {{baseUrl}}/shine/jobs/search?query=sales&job_type=walk_in&department=3301&industry=6&min_experience=2&min_salary=3
+
+### Job search (work from home, full descriptions, posted in the last 3 days)
+GET {{baseUrl}}/shine/jobs/search?query=developer&employment_type=work_from_home&posted_within_days=3&include_description=true
+
+### Job search (a pasted shine.com search link; its slug, page and filters are honoured)
+GET {{baseUrl}}/shine/jobs/search?query=https://www.shine.com/job-search/python-developer-jobs-in-bangalore-2?fexp=4%26sort=1
+
+### Job search (Shine city id from /shine/locations)
+GET {{baseUrl}}/shine/jobs/search?location=243&page_size=5
+
+### Job details (by id)
+GET {{baseUrl}}/shine/jobs/details?job=19819868
+
+### Job details (by link)
+GET {{baseUrl}}/shine/jobs/details?job=https://www.shine.com/jobs/python-developer/meeden-labs-private-limited/19819868
+
+### Job batch (up to 10 ids / links; missing ones land in `errors`)
+GET {{baseUrl}}/shine/jobs/batch?jobs=19819868,19731708,1
+
+### Similar jobs
+GET {{baseUrl}}/shine/jobs/similar?job=19819868&page_size=10
+
+# ========================================
+# COMPANIES
+# ========================================
+
+### A company's openings (name)
+GET {{baseUrl}}/shine/companies/jobs?company=Capgemini&page_size=10
+
+### A company's openings (Shine company page link)
+GET {{baseUrl}}/shine/companies/jobs?company=https://www.shine.com/job-search/tech-mahindra-ltd-openings
+
+# ========================================
+# LOOKUPS
+# ========================================
+
+### Keyword suggestions (with skill / job-title inference)
+GET {{baseUrl}}/shine/suggest?query=pyth
+
+### Location suggestions
+GET {{baseUrl}}/shine/suggest?query=bang&type=locations
+
+### Locations (flat, filtered)
+GET {{baseUrl}}/shine/locations?query=hyder
+
+### Locations (the full state -> city tree)
+GET {{baseUrl}}/shine/locations?flat=false
+
+### Filter vocabularies (experience / salary bands, employment, shift, walk-in, live departments / industries / cities)
+GET {{baseUrl}}/shine/filters
+
+### Trending + top searches
+GET {{baseUrl}}/shine/trending

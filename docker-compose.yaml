@@ -1,0 +1,10 @@
+services:
+  shine-scraper:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      # Optional — Shine's job JSON answers plain HTTP, so leave this unset.
+      # - SHINE_PROXY=http://user:pass@host:port
