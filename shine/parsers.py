@@ -61,6 +61,35 @@ def job_type(raw):
     return _label_value(refdata.JOB_TYPES, refdata.JOB_TYPE_LABELS, raw)
 
 
+def tenure(raw):
+    """A contract-length id ('7') -> its label ('2-3 Years'); a label passes through."""
+    key = text(raw)
+    if key is None:
+        return None
+    return refdata.EMPLOYMENT_TENURES.get(key) or (None if key.isdigit() else key)
+
+
+def education(raw):
+    """The detail payload's employment_type_code, which Shine fills with the
+    education requirement as a JSON list ('[{"degree": "Graduation",
+    "coursetype": "Full Time", …}]') -> [{degree, course_type, field, school}]."""
+    if isinstance(raw, str):
+        try:
+            import json
+            raw = json.loads(raw)
+        except ValueError:
+            return []
+    out = []
+    for item in as_list(raw):
+        if not isinstance(item, dict) or not any(k in item for k in ("degree", "coursetype", "studyfield")):
+            continue
+        entry = {"degree": text(item.get("degree")), "course_type": text(item.get("coursetype")),
+                 "field": text(item.get("studyfield")), "school": text(item.get("academicschool"))}
+        if any(entry.values()):
+            out.append(entry)
+    return out
+
+
 def qualification(raw):
     level = S.to_int(raw)
     return refdata.QUALIFICATION_LABELS.get(level) if level is not None else None
@@ -192,7 +221,7 @@ def job_card(raw, include_description=False):
         "skills": S.csv_list(raw.get("jKwd")),
         "qualification": qualification(raw.get("jQL")),
         "employment_type": employment_type(raw.get("jEType")),
-        "employment_tenure": text(raw.get("jETn")),
+        "employment_tenure": tenure(raw.get("jETn")),
         "shift_type": shift_type(raw.get("jTypeC")),
         "job_type": job_type(raw.get("jJobType")),
         "is_walk_in": walk_in,
@@ -404,8 +433,9 @@ def job_details(raw):
         },
         "tags": tags,
         "qualification": qualification(job.get("qualification_level")),
+        "education": education(job.get("employment_type_code")),
         "employment_type": employment_type(job.get("employment_type")),
-        "employment_type_name": text(job.get("employment_type_name")),
+        "employment_tenure": tenure(job.get("employment_type_name")),
         "shift_type": shift_type(job.get("job_type_category") or job.get("job_category")),
         "job_type": job_type(job.get("job_type")),
         "is_walk_in": job_type(job.get("job_type")) == "walk_in",

@@ -251,6 +251,17 @@ def test_job_details():
     assert P.job_details({"results": []}) is None and P.job_details(None) is None
 
 
+def test_contractual_job_tenure_and_education():
+    out = P.job_details(fx("job_description_contractual"))
+    assert out["employment_type"] == "contractual" and out["employment_tenure"] == "2-3 Years"
+    assert out["education"] == [{"degree": "Graduation", "course_type": "Full Time", "field": None, "school": None}]
+    assert "employment_type_name" not in out
+    assert P.tenure("4") == "3-6 Months" and P.tenure("99") is None and P.tenure(None) is None
+    assert P.education("not json") == [] and P.education(None) == []
+    regular = P.job_details(fx("job_description"))
+    assert regular["employment_tenure"] is None and regular["education"] == []
+
+
 def test_job_page_fallback_payload():
     data = fetch.rsc_query_data(fetch.rsc_payload(fx_text("job_page.html.gz")), "job-description")
     assert data["results"][0]["id"] == JOB

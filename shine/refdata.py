@@ -71,6 +71,10 @@ SHIFT_LABELS = {"1": "Full time", "2": "Part time"}
 # interview / job type (job_type / jJobType)
 JOB_TYPES = {"regular": "1", "walk_in": "2"}
 JOB_TYPE_LABELS = {"1": "Regular", "2": "Walk-in"}
+# contract length of contractual ads (card jETn, detail employment_type_name — Shine
+# reuses that field for it), read off the jETn facet labels 2026-10-21
+EMPLOYMENT_TENURES = {"1": "<1 Month", "2": "1-2 Months", "3": "2-3 Months", "4": "3-6 Months", "5": "6-12 Months",
+                      "6": "1-2 Years", "7": "2-3 Years", "8": "3-5 Years", "9": ">5 Years"}
 # work shift (jNSTs facet; not a request filter the site exposes)
 WORK_SHIFT_LABELS = {"0": "Any", "1": "Day", "2": "Morning", "3": "Night", "4": "Rotational"}
 # qualification level (jQL / qualification_level)
