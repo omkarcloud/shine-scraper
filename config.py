@@ -23,6 +23,7 @@ SHINE_PROXY = os.environ.get("SHINE_PROXY") or None
 
 # Names the shine package reads.
 SHINE_PROXY_COUNTRY = None             # unused here: SHINE_PROXY above is the whole proxy policy
+SHINE_REQUIRE_PROXY = False            # direct is fine here; set SHINE_PROXY to route every request through a proxy
 SHINE_MAX_ATTEMPTS = MAX_RETRIES       # attempts per upstream call
 SHINE_BATCH_WORKERS = 4                # parallel upstream calls in /jobs/batch
 SHINE_BROWSER_FALLBACK = False         # plain HTTP only — no browser in this package

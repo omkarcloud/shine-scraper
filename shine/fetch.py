@@ -29,11 +29,13 @@ Surfaces (all on www.shine.com):
 
 Anti-bot: Akamai fronts the site but answered every plain request without a
 challenge (robots.txt disallows /api/* for crawlers, nothing enforces it).
-Egress: direct by default (config.SHINE_PROXY_COUNTRY None); a failed call
-is retried on a fresh sticky residential exit (config.shine_proxy
-(fallback=True)), and when EVERY curl attempt was blocked one headful
-patchright Chrome (same exit policy) warms on the homepage and replays the
-URL as an in-page fetch — the upwork/indeed escalation — gated by
+Egress: every session rides a sticky exit from config.shine_proxy() (the
+hosted service: an India residential exit, config.SHINE_PROXY_COUNTRY);
+with config.SHINE_REQUIRE_PROXY set there is no direct mode — no
+proxy, no call. A thread keeps its exit until a call fails; a retry runs on
+a fresh exit, and when EVERY curl attempt was blocked one headful patchright
+Chrome (also on an exit) warms on the homepage and replays the URL as an
+in-page fetch — the upwork/indeed escalation — gated by
 config.SHINE_BROWSER_FALLBACK.
 
 Failure taxonomy (scraper_errors, mapped to HTTP by route_glue):
@@ -117,11 +119,25 @@ def _sessions():
     return store
 
 
-def _session(key, proxy):
+def _exit(fallback=False):
+    """The proxy exit for a NEW session. With config.SHINE_REQUIRE_PROXY set
+    (the hosted service) there is no direct mode: no proxy means the call
+    fails rather than reaching Shine from the server's own IP."""
+    proxy = config.shine_proxy(fallback=fallback)
+    if not proxy and getattr(config, "SHINE_REQUIRE_PROXY", False):
+        raise ShineUpstreamError("no Shine proxy configured (Shine is never contacted from the server's IP)")
+    return proxy
+
+
+def _session(key, proxy_factory):
+    """The thread's session for `key`, built on first use with the exit
+    proxy_factory() returns — so a thread keeps one sticky exit until a
+    failure drops the session."""
     from curl_cffi import requests as curl_requests
     store = _sessions()
     sess = store.get(key)
     if sess is None:
+        proxy = proxy_factory()
         sess = curl_requests.Session(impersonate=IMPERSONATE)
         if proxy:
             sess.proxies = {"http": proxy, "https": proxy}
@@ -195,10 +211,11 @@ def _attempts(label, send, browser=None):
     last = None
     blocked_only = True
     for attempt in range(1, attempts + 1):
-        proxy = config.shine_proxy(fallback=attempt > 1)
-        key = f"{attempt if proxy else 0}:{proxy or 'direct'}"
-        sess = _session(key, proxy)
+        # attempt 1 reuses the thread's sticky session; a retry builds a fresh
+        # one on a fresh exit (the failed session is dropped below)
+        key = "primary" if attempt == 1 else f"retry-{attempt}"
         try:
+            sess = _session(key, lambda: _exit(fallback=attempt > 1))
             return send(sess)
         except (ShineBadRequest, ShineNotFound, ShineKeyRejected):
             raise
@@ -242,7 +259,7 @@ class _Browser:
         from chrome_manager import create_scope
         from patchright_driver import PatchrightDriver
         with create_scope():
-            driver = PatchrightDriver(proxy_url=config.shine_proxy(fallback=True), headless=False,
+            driver = PatchrightDriver(proxy_url=_exit(fallback=True), headless=False,
                                       geoip_timezone=True)
         try:
             driver.nav(refdata.SITE + "/", referer="https://www.google.com/", mode="blocked")

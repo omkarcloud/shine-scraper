@@ -346,6 +346,18 @@ def test_attempts_escalate_to_browser_only_when_blocked(monkeypatch):
         fetch._attempts("x", blocked, browser)
 
 
+def test_require_proxy_refuses_direct(monkeypatch):
+    import config
+    monkeypatch.setattr(config, "SHINE_REQUIRE_PROXY", True)
+    monkeypatch.setattr(config, "shine_proxy", lambda fallback=False: None)
+    with pytest.raises(fetch.ShineUpstreamError, match="never contacted"):
+        fetch._exit()
+    monkeypatch.setattr(config, "SHINE_REQUIRE_PROXY", False)
+    assert fetch._exit() is None                       # the open-source kit: direct is allowed
+    monkeypatch.setattr(config, "shine_proxy", lambda fallback=False: "http://u:p@exit:1")
+    assert fetch._exit(fallback=True) == "http://u:p@exit:1"
+
+
 def test_classify():
     assert fetch._classify(200, '{"a": 1}', "x") == {"a": 1}
     with pytest.raises(fetch.ShineBlocked):
