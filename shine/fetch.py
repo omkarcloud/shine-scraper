@@ -363,7 +363,10 @@ def get_html(path, label=None):
 # ---- surfaces ----------------------------------------------------------------------------------------
 
 def search(params, label="job search"):
-    """The open search JSON. `params` are the site's own names."""
+    """The open search JSON. `params` are the site's own names; `fl` (the
+    card fields, refdata.SEARCH_FIELDS) is added so cards carry the salary."""
+    params = dict(params or {})
+    params.setdefault("fl", refdata.SEARCH_FIELDS)
     return get_json(refdata.SEARCH_PATH, params, label=label, expect="results")
 
 

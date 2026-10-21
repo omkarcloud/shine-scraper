@@ -186,7 +186,7 @@ def job_card(raw, include_description=False):
         "locations": [loc for loc in (text(x) for x in as_list(raw.get("jLoc"))) if loc],
         "reporting_location": text(raw.get("jWLC")),
         "experience": S.experience_from_label(raw.get("jExp")),
-        "salary": S.salary_from_label(raw.get("jSal")),
+        "salary": S.card_salary(raw.get("jSal")),
         "industry": text(raw.get("jInd")),
         "functional_area": text(raw.get("jArea")),
         "skills": S.csv_list(raw.get("jKwd")),
@@ -317,7 +317,7 @@ def similar_result(raw, job_id, page, page_size, include_description=False):
             "link": S.job_link(None, job_id),
             "locations": [loc for loc in (text(x) for x in str(about.get("locations") or "").split("||")) if loc],
             "experience": S.experience_from_label(about.get("experience")),
-            "salary": S.salary_from_label(about.get("salary")),
+            "salary": S.card_salary(about.get("salary")),
             "industry": text(about.get("ind")),
             "functional_area": text(about.get("area")),
         },
@@ -355,7 +355,7 @@ def job_details(raw):
     description_html = job.get("job_description") if isinstance(job.get("job_description"), str) else None
     description_text = S.html_to_text(description_html)
     salary_text = text(job.get("salary_text"))
-    salary_hidden = bool(salary_text and "hidden" in salary_text.lower())
+    salary_hidden = S.is_hidden_salary(salary_text)
     if salary_hidden:
         # a hidden salary still carries minimum/maximum_salary, but they are
         # Shine's placeholder band (2-5 lakh on every hidden ad, Google's

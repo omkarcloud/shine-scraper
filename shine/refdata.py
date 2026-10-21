@@ -17,6 +17,16 @@ BFF_PATH = "/pages/bff"                  # the Next.js app's backend-for-fronten
 BFF_API_KEY = "xk_live_Kj8nP2mV4wXc9tYq5sRzH3fA7bNdL6gTvUeWxCpM_2023"
 
 SEARCH_PATH = "/api/v2/search/simple/"          # open JSON, no key: the job search behind /job-search/<slug>
+# The search API leaves the salary label (jSal) OUT of every card unless the
+# request names its fields in `fl` (the site's own pages always do). These are
+# the fields parsers.job_card reads — a lean list also trims the payload by a
+# quarter. (A list missing required fields answers 500, e.g. "id,jJT,jCName".)
+SEARCH_FIELDS = ",".join((
+    "id", "jJT", "jSlug", "jCID", "jCName", "jHF", "jLU", "cCLU", "cCW", "cCDom", "cCS", "cCH", "cFY", "cSML",
+    "jTopCmp", "cCTop", "cUD", "jLoc", "jWLC", "jExp", "jSal", "jInd", "jArea", "jKwd", "jQL", "jEType", "jETn",
+    "jTypeC", "jJobType", "jVanc", "jACnt", "jPack", "jPDate", "jExpDate", "early_applicant_badge", "iaj", "jPJ",
+    "jHJ", "g_job_flag", "jRN", "jRE", "jRP", "jRUrl", "jJD", "jJDT",
+))
 SIMILAR_PATH = "/api/v2/search/similar/"        # open JSON: similar jobs for a job id
 BFF_JOB_DESCRIPTION = "/api/v1/search/job-description"      # ?jobId=
 BFF_JOB_SEARCH = "/api/v1/search/jobs"                      # the SSR search (q + url slug)

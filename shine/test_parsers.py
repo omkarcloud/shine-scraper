@@ -194,6 +194,29 @@ def test_search_result():
         assert salaried["salary"]["currency"] == "INR" and salaried["salary"]["max"] >= salaried["salary"]["min"]
 
 
+def test_search_cards_carry_salary():
+    # captured with fl=refdata.SEARCH_FIELDS: without `fl` the search API drops jSal from every card
+    out = P.search_result(fx("search_with_salary"), 1, 20)
+    shown = [j["salary"] for j in out["jobs"] if j["salary"] and not j["salary"]["is_hidden"]]
+    hidden = [j["salary"] for j in out["jobs"] if j["salary"] and j["salary"]["is_hidden"]]
+    assert shown and hidden
+    for sal in shown:
+        assert sal["currency"] == "INR" and sal["label"] and (sal["max"] or 0) >= (sal["min"] or 0)
+    assert all(h["min"] is None and h["max"] is None and h["label"] is None for h in hidden)
+    assert S.card_salary("[Salary Hidden]")["is_hidden"] is True and S.card_salary(None) is None
+    assert S.card_salary("Rs 26  - 30 Lakh/Yr") == {"label": "Rs 26 - 30 Lakh/Yr", "min": 2600000, "max": 3000000,
+                                                     "currency": "INR", "period": "yearly", "is_hidden": False}
+
+
+def test_search_sends_card_fields(monkeypatch):
+    seen = {}
+    monkeypatch.setattr(fetch, "get_json", lambda path, params=None, **kw: seen.update(params) or {"results": []})
+    fetch.search({"q": "python"})
+    assert seen["fl"] == refdata.SEARCH_FIELDS and "jSal" in seen["fl"].split(",")
+    fetch.search({"q": "python", "fl": "id,jJT"})
+    assert seen["fl"] == "id,jJT"
+
+
 def test_search_result_filtered_and_posted_after():
     out = P.search_result(fx("search_filtered"), 2, 5)
     assert out["pagination"]["page"] == 2 and out["pagination"]["items_per_page"] == 5 and len(out["jobs"]) == 5

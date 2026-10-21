@@ -34,6 +34,7 @@ def status(path, **params):
 def test_job_search():
     body = call("/shine/jobs/search", query="software engineer", location="Bangalore")
     assert body["count"] > 1000 and len(body["jobs"]) == 20
+    assert any(j["salary"] and j["salary"]["max"] for j in body["jobs"])      # cards carry salary (fl)
     body = call("/shine/jobs/search", query="python", location="Bangalore")
     assert body["count"] > 100 and len(body["jobs"]) == 20 and body["next"] and body["total_pages"] > 5
     job = body["jobs"][0]

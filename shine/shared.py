@@ -273,6 +273,24 @@ def salary_from_label(label):
             "period": period or "yearly"}
 
 
+def is_hidden_salary(label):
+    """Shine's '[Salary Hidden]' placeholder."""
+    label = text(label)
+    return bool(label and "hidden" in label.lower())
+
+
+def card_salary(label):
+    """A card's salary label -> the salary object; '[Salary Hidden]' -> null
+    bounds with is_hidden true; no label -> None."""
+    if is_hidden_salary(label):
+        return {"label": None, "min": None, "max": None, "currency": refdata.CURRENCY, "period": "yearly",
+                "is_hidden": True}
+    out = salary_from_label(label)
+    if out is not None:
+        out["is_hidden"] = False
+    return out
+
+
 def salary_from_bounds(minimum, maximum, label=None):
     """The detail payload's minimum_salary / maximum_salary (rupees per year,
     as strings) -> the same shape as salary_from_label; both None -> the label
