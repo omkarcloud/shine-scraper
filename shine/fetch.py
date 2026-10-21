@@ -214,6 +214,8 @@ def _attempts(label, send, browser=None):
         # attempt 1 reuses the thread's sticky session; a retry builds a fresh
         # one on a fresh exit (the failed session is dropped below)
         key = "primary" if attempt == 1 else f"retry-{attempt}"
+        if attempt > 1:
+            _drop_session(key)      # an earlier call's retry session would reuse its old exit
         try:
             sess = _session(key, lambda: _exit(fallback=attempt > 1))
             return send(sess)
